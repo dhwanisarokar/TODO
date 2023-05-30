@@ -1,24 +1,74 @@
-document.getElementById("time").innerHTML = new Date().toLocaleDateString(
+document.getElementById("date").innerHTML = new Date().toLocaleDateString(
   "en-us",
   { weekday: "long", year: "numeric", month: "short", day: "numeric" }
 );
 
-document.getElementById("form").addEventListener("submit", (e) => {
-  e.preventDefault();
+let todos = JSON.parse(localStorage.getItem("todo")) || [];
 
-  const todo = document.getElementById("taskInput").value;
-  console.log(todo);
-});
+function randerTodos() {
+  const todoList = document.getElementById("todo-list");
+  todoList.innerHTML = "";
 
-const todoArray = [];
-
-function getTodoList(task) {
-  return `
-        <li class="list-group-item p-3">
-          <input class="form-check-input me-1" id="todo-1" type="checkbox" />
-          <label class="form-check-label" for="todo-1">
-            <strike>${task}</strike>
+  todos.forEach((todo, idx) => {
+    const listItem = `
+        <li class="list-group-item fs-4 p-3">
+          <input class="form-check-input me-1 done-checked" id="todo-${idx}" type="checkbox" ${
+      todo.completed ? "checked" : ""
+    }/>
+          <label class="form-check-label ${
+            todo.completed ? "strike" : ""
+          }" for="todo-${idx}">
+            ${todo.todo}
           </label>
         </li>  
     `;
+
+    todoList.innerHTML += listItem;
+  });
 }
+
+function handleFormSubmit(e) {
+  e.preventDefault();
+  const todoInput = document.getElementById("taskInput");
+  const todo = todoInput.value.trim();
+
+  if (todo !== "") {
+    const newTodo = {
+      todo,
+      completed: false,
+    };
+    // console.log(newTodo);
+    todos.push(newTodo);
+    saveTodos();
+    randerTodos();
+    todoInput.value = "";
+    todoInput.focus();
+  }
+}
+
+function saveTodos() {
+  localStorage.setItem("todo", JSON.stringify(todos));
+}
+
+function handleClearAll() {
+  todos = [];
+  saveTodos();
+  randerTodos();
+}
+
+function handleCheckBoxClick(e) {
+  const checkbox = e.target;
+
+  const index = parseInt(checkbox.id.split("-")[1]);
+  todos[index].completed = checkbox.checked;
+  saveTodos();
+  randerTodos();
+}
+
+document.getElementById("form").addEventListener("submit", handleFormSubmit);
+document.getElementById("clear-all").addEventListener("click", handleClearAll);
+document
+  .getElementById("todo-list")
+  .addEventListener("click", handleCheckBoxClick);
+
+randerTodos();
